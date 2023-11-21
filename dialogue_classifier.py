@@ -29,34 +29,69 @@ def preprocess_words(words : List[str], stemmer) -> List[str]:
         stems.add(stemmer.stem(w))
     return list(stems)
 
-def organize_raw_training_data(raw_training_data : List[Dict], stemmer) -> None:
-    words = [] # ["bla", "sldj", "aklj", "woeiu", "lkajdslfsj", "lsdkjfsl", "alskd"]
-    document_dict = {} # {char1 : ["bla", "sldj", "aklj"]}
-    documents = [] # [(char1, ["bla", "sldj", "aklj"]), (char2, ["woeiu", "lkajdslfsj", "lsdkjfsl", "alskd"])]
+def organize_raw_training_data(raw_training_data : List[Dict], stemmer) -> (List, List, Dict):
+    """
+    Returns several organized versions of words from character dialogue.
+    params: 
+        raw_training_data -- format {person: [person], sentence: [sentence]}
+    returns: 
+        words -- list of all unique words
+        classes -- list of all unique characters with lines 
+        document -- list of (character, [all unique spoken words])
+    """
+    words = set() # ["bla", "sldj", "aklj", "woeiu", "lkajdslfsj", "lsdkjfsl", "alskd"]
+    document_dict = {} # {char1 : [{"bla", "sldj", "aklj"}, {"asd", "afs"}]}
+    documents = [] # [(char1, ["bla", "sldj", "aklj"]), (char1, ["aklj"]), (char2, ["wiu", "lk"])]
     classes = [] # [char1, char2]
-    # Retrieve the tokens from the sentence.  You can achieve this with `nltk.word_tokenize()
+
+    # Process words
     for line in raw_training_data:
         character = line["person"]
         line_tokens = nltk.word_tokenize(line["sentence"]) 
         line_words = preprocess_words(line_tokens, stemmer)
         if character not in classes:
             classes.append(character)
-            document_dict.update({character : line_words})
+            document_dict.update({character : [set(line_words)]})
         else: # character has already appeared
-            document_dict[character] += (line_words)
-        
-    # print(f"{character} line_tokens: {line_tokens}")
-    # print(f"line_words: {line_words}")
-    for character, words in document_dict.items():
-        print(f"{character}: {words}")
+            word_set = document_dict[character]
+            word_set.append(set(line_words))
+
+    # Create output document list
+    for character, sentence_words in document_dict.items():
+        for w in sentence_words:
+            documents.append((list(w), character))
+            words.update(w)
+    return list(words), classes, documents
+
+def create_training_data(words : List, classes : List, documents: List, stemmer) -> (List, List):
+    """
+    Converts data from words, classes and documents into binary list representations. 
+    params:
+        words -- list of all unique words
+        classes -- list of all unique characters with lines 
+        document -- list of (character, [all unique spoken words])
+    returns: 
+        training_data -- represents each sentence as its rcoverage of entire word list,
+        where '1' is a word in the sentence and '0' is a word not in the sentence. 
+        output -- represents a sentence as what class it belongs to. A sentence that belongs 
+        to the zeroth class would be [1, 0, 0]
+    """
+    training_data = []
+    output = []
+    # populate training data
+    # populate output data
+    pass 
 
 def main():
     stemmer = LancasterStemmer()
     print("getting raw data...")
     raw_training_data = get_raw_training_data('dialogue_data.csv')
     print("organizing data...")
-    organize_raw_training_data(raw_training_data, stemmer)
-
+    words, classes, documents = organize_raw_training_data(raw_training_data, stemmer)
+    print(f"words={words}")
+    print(f"classes={classes}")
+    print(f"documents={documents}")
+    # training_data, output = create_training_data(words, classes, documents, stemmer)
 
 if __name__ == "__main__":
     main()
