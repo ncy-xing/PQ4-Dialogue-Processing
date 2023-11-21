@@ -69,18 +69,37 @@ def create_training_data(words : List, classes : List, documents: List, stemmer)
     params:
         words -- list of all unique words
         classes -- list of all unique characters with lines 
-        document -- list of (character, [all unique spoken words])
+        document -- list of ([unique words in sentence], character)
     returns: 
-        training_data -- represents each sentence as its rcoverage of entire word list,
+        training_data -- represents each sentence as its coverage of entire word list,
         where '1' is a word in the sentence and '0' is a word not in the sentence. 
         output -- represents a sentence as what class it belongs to. A sentence that belongs 
         to the zeroth class would be [1, 0, 0]
     """
     training_data = []
     output = []
-    # populate training data
-    # populate output data
-    pass 
+
+    for doc in documents:
+        sentence_words = doc[0]
+        char = doc[1]
+        binary_words = binary_list(words, sentence_words)
+        binary_classes = binary_list(classes, char)
+        training_data.append(binary_words)
+        output.append(binary_classes)
+    return training_data, output
+
+def binary_list(superset : List, subset : List) -> List:
+    """
+    Returns a binarized representation of the superset. Elements in the result are 0
+    if not included in the subset and 1 if in the subset.
+    """
+    result = [0] * len(superset)
+    subset_elements = set(subset)
+    for i in range(0, len(superset)):
+        if superset[i] in subset_elements:
+            result[i] = 1
+    return result
+
 
 def main():
     stemmer = LancasterStemmer()
@@ -88,10 +107,12 @@ def main():
     raw_training_data = get_raw_training_data('dialogue_data.csv')
     print("organizing data...")
     words, classes, documents = organize_raw_training_data(raw_training_data, stemmer)
-    print(f"words={words}")
-    print(f"classes={classes}")
-    print(f"documents={documents}")
-    # training_data, output = create_training_data(words, classes, documents, stemmer)
-
+    # print(f"words={words}")
+    # print(f"classes={classes}")
+    # print(f"documents={documents}")
+    training_data, output = create_training_data(words, classes, documents, stemmer)
+    # print(f"training data={training_data}")
+    # print(f"output={output}")
+    
 if __name__ == "__main__":
     main()
