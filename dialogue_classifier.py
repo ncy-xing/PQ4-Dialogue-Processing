@@ -1,12 +1,16 @@
+"""
+Names: Ash Fowler and Nancy Xing
+Assignment: CSCI 3275 PQ4 Assignment 
+Date: 11/21/23
+
+Format dialogue data to be input into a predictive neural network. 
+"""
+
 from typing import Dict, List
 import nltk
 from nltk.stem.lancaster import LancasterStemmer
-import os
-import json
-import datetime
 import csv
-import numpy as np
-import time
+from numpy import exp
 
 def get_raw_training_data(filename : str) -> List[Dict[str, str]]: 
     """
@@ -14,7 +18,7 @@ def get_raw_training_data(filename : str) -> List[Dict[str, str]]:
     each of the format {person: [person], sentence: [sentence]}
     """
     training_data = []
-    with open('./dialogue_data.csv') as csvfile:
+    with open(filename) as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         for row in reader:
             character = row[0].lower()
@@ -39,10 +43,10 @@ def organize_raw_training_data(raw_training_data : List[Dict], stemmer) -> (List
         classes -- list of all unique characters with lines 
         document -- list of (character, [all unique spoken words])
     """
-    words = set() # ["bla", "sldj", "aklj", "woeiu", "lkajdslfsj", "lsdkjfsl", "alskd"]
-    document_dict = {} # {char1 : [{"bla", "sldj", "aklj"}, {"asd", "afs"}]}
-    documents = [] # [(char1, ["bla", "sldj", "aklj"]), (char1, ["aklj"]), (char2, ["wiu", "lk"])]
-    classes = [] # [char1, char2]
+    words = set() 
+    document_dict = {} 
+    documents = [] 
+    classes = [] 
 
     # Process words
     for line in raw_training_data:
@@ -83,7 +87,7 @@ def create_training_data(words : List, classes : List, documents: List, stemmer)
         sentence_words = doc[0]
         char = doc[1]
         binary_words = binary_list(words, sentence_words)
-        binary_classes = binary_list(classes, char)
+        binary_classes = binary_list(classes, [char])
         training_data.append(binary_words)
         output.append(binary_classes)
     return training_data, output
@@ -100,19 +104,27 @@ def binary_list(superset : List, subset : List) -> List:
             result[i] = 1
     return result
 
+def sigmoid(z : float) -> float:
+    return 1 / (1 + exp(-z))
+
+def sigmoid_output_to_derivative(output):
+    """Convert the sigmoid function's output to its derivative."""
+    return output * (1-output)
 
 def main():
     stemmer = LancasterStemmer()
     print("getting raw data...")
     raw_training_data = get_raw_training_data('dialogue_data.csv')
     print("organizing data...")
+
     words, classes, documents = organize_raw_training_data(raw_training_data, stemmer)
-    # print(f"words={words}")
-    # print(f"classes={classes}")
-    # print(f"documents={documents}")
     training_data, output = create_training_data(words, classes, documents, stemmer)
-    # print(f"training data={training_data}")
-    # print(f"output={output}")
     
+    print(f"words={words}")
+    print(f"classes={classes}")
+    print(f"documents={documents}")
+    print(f"training data={training_data}")
+    print(f"output={output}")
+
 if __name__ == "__main__":
     main()

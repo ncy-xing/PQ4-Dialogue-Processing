@@ -1,4 +1,22 @@
-"""TODO: add more here..."""
+"""
+Names: Ash Fowler and Nancy Xing
+Assignment: CSCI 3275 PQ4 Assignment 
+Date: 11/21/23
+
+Create a predictive neural network for dialogue. Predicts the character
+speaking a given dialogue line given past character dialogue.
+"""
+
+import numpy as np 
+from dialogue_classifier import * 
+import time
+import datetime
+import json 
+from typing import Dict, List
+import nltk
+from nltk.stem.lancaster import LancasterStemmer
+import csv
+from numpy import exp
 
 """* * * TRAINING * * *"""
 def init_synapses(X, hidden_neurons, classes):
@@ -169,7 +187,12 @@ def classify(words, classes, sentence):
 
 
 def main():
-    """TODO: more instructions here..."""
+    stemmer = LancasterStemmer()
+    print("getting raw data...")
+    raw_training_data = get_raw_training_data('dialogue_data.csv')
+    print("organizing data...")
+    words, classes, documents = organize_raw_training_data(raw_training_data, stemmer)
+    training_data, output = create_training_data(words, classes, documents, stemmer)
 
     # Comment this out if you have already trained once and don't want to re-train.
     start_training(words, classes, training_data, output)
